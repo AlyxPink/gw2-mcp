@@ -1,0 +1,482 @@
+name: CI/CD Pipeline
+
+# Trigger the workflow on push to main/develop branches, PRs to main, and releases
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+  # Allow manual workflow dispatch for testing
+  workflow_dispatch:
+
+# Global environment variables
+env:
+  GO_VERSION: "1.24" # Go version to use across all jobs
+  GOLANGCI_LINT_VERSION: "v1.61.0" # Pin golangci-lint version for consistency
+  GOSEC_VERSION: "2.21.4" # Pin gosec version for security scanning
+  NANCY_VERSION: "v1.0.46" # Pin nancy version for dependency scanning
+
+# Set default permissions to read-only for security
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    # Use a matrix strategy to test against multiple Go versions for better compatibility
+    strategy:
+      matrix:
+        go-version: ["1.23", "1.24"]
+    steps:
+      # Checkout code with full history for better context
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Set up Go with the latest setup-go action
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+          # Enable Go module caching automatically
+          cache: true
+          cache-dependency-path: go.sum
+
+      # Verify go.mod and go.sum are in sync
+      - name: Verify Go modules
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      # Download and verify dependencies
+      - name: Download and verify dependencies
+        run: |
+          go mod download
+          go mod verify
+
+      # Run tests with race detection, coverage, and JSON output for better CI integration
+      - name: Run tests with coverage
+        run: |
+          go test -v -race -coverprofile=coverage.out -covermode=atomic -json ./... > test-results.json
+
+      # Upload test results for better visibility
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-go${{ matrix.go-version }}
+          path: |
+            test-results.json
+            coverage.out
+
+  lint:
+    name: Code Linting
+    runs-on: ubuntu-latest
+    # Set specific permissions for this job
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: write
+    steps:
+      # Checkout code with full history for better linting context
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Set up Go with caching enabled
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      # Run golangci-lint with pinned version for consistency
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          # Use longer timeout for comprehensive analysis
+          args: --timeout=10m --verbose
+          # Enable annotations for better PR feedback
+          annotations: true
+          # Only show new issues in PRs to reduce noise
+          only-new-issues: ${{ github.event_name == 'pull_request' }}
+          # Skip cache to ensure fresh analysis
+          skip-cache: false
+          # Skip build cache for faster execution
+          skip-build-cache: true
+
+  format:
+    name: Code Formatting
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout code for formatting verification
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Go with caching
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      # Install gofumpt for stricter formatting than gofmt
+      - name: Install gofumpt
+        run: go install mvdan.cc/gofumpt@latest
+
+      # Install goimports for import organization
+      - name: Install goimports
+        run: go install golang.org/x/tools/cmd/goimports@latest
+
+      # Check gofumpt formatting
+      - name: Check gofumpt formatting
+        run: |
+          # Check if any files need formatting
+          unformatted=$(gofumpt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "❌ The following files are not formatted with gofumpt:"
+            echo "$unformatted"
+            echo ""
+            echo "To fix formatting issues, run:"
+            echo "  gofumpt -w ."
+            echo "  make format  # if you have a Makefile target"
+            exit 1
+          fi
+          echo "✅ All files are properly formatted with gofumpt"
+
+      # Check goimports formatting
+      - name: Check import formatting
+        run: |
+          # Check if any files need import formatting
+          unformatted=$(goimports -l .)
+          if [ -n "$unformatted" ]; then
+            echo "❌ The following files have unorganized imports:"
+            echo "$unformatted"
+            echo ""
+            echo "To fix import issues, run:"
+            echo "  goimports -w ."
+            exit 1
+          fi
+          echo "✅ All imports are properly organized"
+
+  security:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    # Set permissions for security scanning
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      # Checkout code for security analysis
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Set up Go with caching
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      # Run Gosec security scanner with pinned version
+      - name: Run Gosec Security Scanner
+        uses: securecodewarrior/github-action-gosec@v3
+        with:
+          args: "-fmt sarif -out gosec-results.sarif ./..."
+          version: ${{ env.GOSEC_VERSION }}
+
+      # Upload Gosec results to GitHub Security tab
+      - name: Upload Gosec results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gosec-results.sarif
+
+      # Run govulncheck for vulnerability scanning
+      - name: Run Go vulnerability check
+        run: |
+          # Install govulncheck
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          # Run vulnerability check
+          govulncheck ./...
+
+      # Static analysis with go vet (built-in Go tool)
+      - name: Run go vet
+        run: go vet ./...
+
+      # Check for hardcoded secrets (basic pattern matching)
+      - name: Check for potential secrets
+        run: |
+          echo "🔍 Scanning for potential hardcoded secrets..."
+          # Look for common secret patterns
+          if grep -r -E "(password|secret|key|token)\s*=\s*['\"][^'\"]{8,}" --include="*.go" . || \
+             grep -r -E "(API_KEY|SECRET_KEY|PRIVATE_KEY)" --include="*.go" . || \
+             grep -r -E "['\"][A-Za-z0-9]{32,}['\"]" --include="*.go" .; then
+            echo "⚠️  Potential hardcoded secrets found. Please review the above matches."
+            echo "Consider using environment variables or secret management instead."
+            exit 1
+          fi
+          echo "✅ No obvious hardcoded secrets detected"
+
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    # Wait for quality checks to complete successfully
+    needs: [test, lint, format, security, dependency-check]
+    # Only run on published releases
+    if: github.event_name == 'release'
+    # Set permissions for release creation and package publishing
+    permissions:
+      contents: write
+      packages: write
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+    steps:
+      # Checkout code with full history for changelog generation
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Set up Go with caching
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      # Set up Docker Buildx for multi-platform builds (required by GoReleaser)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Log in to GitHub Container Registry for Docker publishing
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Optional: Log in to Docker Hub (if configured)
+      - name: Log in to Docker Hub
+        if: ${{ env.DOCKER_USERNAME != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Run GoReleaser with full build and release process
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          # Use latest stable version
+          version: "~> v2"
+          args: release --clean
+          workdir: .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: Add additional tokens if publishing to other registries
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Upload release artifacts with checksums
+      - name: Upload release checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-checksums
+          path: dist/checksums.txt
+          retention-days: 90
+
+  dependency-check:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+    # Run dependency checks in parallel with other jobs
+    steps:
+      # Checkout code for dependency analysis
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Set up Go with caching
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      # Check for known vulnerabilities using govulncheck (official Go tool)
+      - name: Run Go vulnerability check
+        run: |
+          echo "🔍 Checking for known vulnerabilities in Go dependencies..."
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck -json ./... > vuln-report.json || true
+
+          # Display human-readable output
+          govulncheck ./...
+
+      # Check for outdated dependencies
+      - name: Check for outdated dependencies
+        run: |
+          echo "📅 Checking for outdated dependencies..."
+          go list -u -m all | grep -E '\[.*\]' || echo "✅ All dependencies are up to date"
+
+      # Analyze dependency licenses (basic check)
+      - name: Analyze dependency licenses
+        run: |
+          echo "📜 Analyzing dependency licenses..."
+          go mod download
+          # List all dependencies
+          echo "Direct dependencies:"
+          go list -m all | head -20
+
+          # Check for common problematic licenses (basic pattern matching)
+          echo "\n🔍 Checking for potentially problematic licenses..."
+          if find "$GOPATH/pkg/mod" -name "LICENSE*" -o -name "COPYING*" 2>/dev/null | head -10 | xargs grep -l -i "gpl\|agpl\|copyleft" 2>/dev/null; then
+            echo "⚠️  Found potentially restrictive licenses. Please review."
+          else
+            echo "✅ No obviously restrictive licenses detected"
+          fi
+
+      # Generate dependency report
+      - name: Generate dependency report
+        run: |
+          echo "📊 Generating dependency report..."
+          {
+            echo "# Dependency Report"
+            echo "Generated on: $(date)"
+            echo "Go version: $(go version)"
+            echo ""
+            echo "## Direct Dependencies"
+            go list -m -f '{{.Path}} {{.Version}}' all | grep -v "^$(go list -m)$"
+            echo ""
+            echo "## Dependency Tree"
+            go mod graph | head -20
+          } > dependency-report.md
+
+      # Upload dependency reports
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-reports
+          path: |
+            vuln-report.json
+            dependency-report.md
+          retention-days: 30
+
+      # Run Nancy for additional vulnerability scanning (external tool)
+      # Note: Nancy is an external tool but provides additional vulnerability data
+      # from Sonatype's database, complementing govulncheck
+      - name: Run Nancy vulnerability scanner
+        run: |
+          echo "🔍 Running Nancy for additional vulnerability scanning..."
+          echo "Note: Nancy provides vulnerability data from Sonatype's OSS Index"
+          go install github.com/sonatypecommunity/nancy@${{ env.NANCY_VERSION }}
+          go list -json -deps ./... | nancy sleuth --loud || {
+            echo "⚠️  Nancy found potential issues. Please review the output above."
+            echo "This is an additional check beyond Go's official govulncheck."
+            exit 0  # Don't fail the build on Nancy warnings
+          }
+          echo "✅ Nancy scan completed"
+
+  # Summary job that runs after all other jobs complete
+  # Provides a single point to check if the entire pipeline succeeded
+  pipeline-summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    # Wait for all jobs to complete (success or failure)
+    needs: [test, lint, format, security, release, dependency-check]
+    # Always run this job, even if some jobs fail
+    if: always()
+    # Set minimal permissions
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      # Checkout for any summary scripts (minimal)
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/
+            README.md
+          sparse-checkout-cone-mode: false
+
+      # Generate pipeline summary
+      - name: Generate Pipeline Summary
+        run: |
+          echo "# 🚀 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Job status summary
+          echo "## 📊 Job Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | ${{ needs.test.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Linting | ${{ needs.lint.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Formatting | ${{ needs.format.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Analysis | ${{ needs.security.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Release | ${{ needs.release.result == 'success' && '✅ Passed' || (needs.release.result == 'skipped' && '⏭️ Skipped' || '❌ Failed') }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Analysis | ${{ needs.dependency-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Overall status
+          if [[ "${{ needs.test.result }}" == "success" && \
+                "${{ needs.lint.result }}" == "success" && \
+                "${{ needs.format.result }}" == "success" && \
+                "${{ needs.security.result }}" == "success" && \
+                "${{ needs.dependency-check.result }}" == "success" ]]; then
+            echo "## 🎉 Pipeline Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All quality checks passed! The code is ready for deployment." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📦 GoReleaser Integration" >> $GITHUB_STEP_SUMMARY
+            echo "- Binary building and Docker image creation now handled by GoReleaser" >> $GITHUB_STEP_SUMMARY
+            echo "- Eliminates duplication and ensures consistent release artifacts" >> $GITHUB_STEP_SUMMARY
+            echo "- Release job runs only on published releases with full build process" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ❌ Pipeline Status: FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Some jobs failed. Please check the individual job logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Generated at $(date -u)*" >> $GITHUB_STEP_SUMMARY
+
+      # Set final pipeline status
+      - name: Set Pipeline Status
+        run: |
+          # Fail this job if any critical jobs failed
+          if [[ "${{ needs.test.result }}" != "success" || \
+                "${{ needs.lint.result }}" != "success" || \
+                "${{ needs.format.result }}" != "success" || \
+                "${{ needs.security.result }}" != "success" || \
+                "${{ needs.dependency-check.result }}" != "success" ]]; then
+            echo "❌ Pipeline failed - critical jobs did not succeed"
+            exit 1
+          fi
+          echo "✅ Pipeline completed successfully"

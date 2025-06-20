@@ -1,0 +1,264 @@
+# GoReleaser configuration for GW2 MCP Server
+version: 2
+
+project_name: gw2-mcp
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: gw2-mcp
+    main: ./
+    binary: gw2-mcp
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 6
+      - 7
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+
+archives:
+  - id: gw2-mcp
+    ids:
+      - gw2-mcp
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    files:
+      - README.md
+      - LICENSE
+      - docs/*
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+      - "^style:"
+      - "^refactor:"
+      - Merge pull request
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: "Bug fixes"
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: "Performance improvements"
+      regexp: '^.*?perf(\(.+\))??!?:.+$'
+      order: 2
+    - title: Others
+      order: 999
+
+release:
+  github:
+    owner: AlyxPink
+    name: gw2-mcp
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## GW2 MCP Server {{ .Tag }}
+
+    Welcome to this new release of GW2 MCP Server!
+
+    ### What's New
+
+  footer: |
+    ## Installation
+
+    ### Binary Download
+    Download the appropriate binary for your platform from the assets below.
+
+    ### Docker
+    ```bash
+    docker pull alyxpink/gw2-mcp:{{ .Tag }}
+    ```
+
+    ### Go Install
+    ```bash
+    go install github.com/AlyxPink/gw2-mcp@{{ .Tag }}
+    ```
+
+    ## Usage
+
+    ```bash
+    ./gw2-mcp
+    ```
+
+    For more information, see the [README](https://github.com/AlyxPink/gw2-mcp/blob/main/README.md).
+
+    **Full Changelog**: https://github.com/AlyxPink/gw2-mcp/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+dockers:
+  # Primary Docker Hub images
+  - image_templates:
+      - "alyxpink/gw2-mcp:{{ .Tag }}"
+      - "alyxpink/gw2-mcp:v{{ .Major }}"
+      - "alyxpink/gw2-mcp:v{{ .Major }}.{{ .Minor }}"
+      - "alyxpink/gw2-mcp:latest"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64,linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/AlyxPink/gw2-mcp"
+      - "--label=org.opencontainers.image.description=Guild Wars 2 Model Context Provider Server"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--label=org.opencontainers.image.vendor=AlyxPink"
+      - "--label=org.opencontainers.image.url=https://github.com/AlyxPink/gw2-mcp"
+      - "--label=org.opencontainers.image.documentation=https://github.com/AlyxPink/gw2-mcp/blob/main/README.md"
+    extra_files:
+      - README.md
+      - LICENSE
+  
+  # GitHub Container Registry images
+  - image_templates:
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}"
+      - "ghcr.io/alyxpink/gw2-mcp:v{{ .Major }}"
+      - "ghcr.io/alyxpink/gw2-mcp:v{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/alyxpink/gw2-mcp:latest"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64,linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/AlyxPink/gw2-mcp"
+      - "--label=org.opencontainers.image.description=Guild Wars 2 Model Context Provider Server"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--label=org.opencontainers.image.vendor=AlyxPink"
+      - "--label=org.opencontainers.image.url=https://github.com/AlyxPink/gw2-mcp"
+      - "--label=org.opencontainers.image.documentation=https://github.com/AlyxPink/gw2-mcp/blob/main/README.md"
+    extra_files:
+      - README.md
+      - LICENSE
+
+homebrew_casks:
+  - name: gw2-mcp
+    repository:
+      owner: AlyxPink
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: "https://github.com/AlyxPink/gw2-mcp"
+    description: "Guild Wars 2 Model Context Provider Server"
+    license: "MIT"
+
+scoops:
+  - repository:
+      owner: AlyxPink
+      name: scoop-bucket
+      branch: main
+      token: "{{ .Env.SCOOP_BUCKET_GITHUB_TOKEN }}"
+    homepage: "https://github.com/AlyxPink/gw2-mcp"
+    description: "Guild Wars 2 Model Context Provider Server"
+    license: MIT
+
+nfpms:
+  - id: gw2-mcp
+    package_name: gw2-mcp
+    file_name_template: "{{ .ConventionalFileName }}"
+    vendor: AlyxPink
+    homepage: https://github.com/AlyxPink/gw2-mcp
+    maintainer: AlyxPink <alyx@example.com>
+    description: |-
+      Guild Wars 2 Model Context Provider Server
+      A bridge between LLMs and Guild Wars 2 data sources.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+      - archlinux
+    bindir: /usr/bin
+    section: utils
+    contents:
+      - src: ./README.md
+        dst: /usr/share/doc/gw2-mcp/README.md
+      - src: ./LICENSE
+        dst: /usr/share/doc/gw2-mcp/LICENSE
+    scripts:
+      postinstall: "scripts/postinstall.sh"
+      preremove: "scripts/preremove.sh"
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
+milestones:
+  - repo:
+      owner: AlyxPink
+      name: gw2-mcp
+    close: true
+    fail_on_error: false
+    name_template: "{{ .Tag }}"
+
+sboms:
+  - artifacts: archive
+    documents:
+      - "{{ .ProjectName }}_{{ .Version }}_checksums.txt.sbom"
+  - artifacts: binary
+    documents:
+      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}.sbom"
+  - artifacts: package
+    documents:
+      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}.{{ .Format }}.sbom"
+
+announce:
+  discord:
+    enabled: true
+    message_template: "GW2 MCP Server {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}"
