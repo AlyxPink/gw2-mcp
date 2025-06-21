@@ -19,13 +19,13 @@ type Key string
 
 const (
 	// CurrencyListKey is the cache key for the list of all currencies
-	CurrencyListKey   Key = "currencies:list"
+	CurrencyListKey Key = "currencies:list"
 	// CurrencyDetailKey is the cache key template for individual currency details
 	CurrencyDetailKey Key = "currency:detail:%d"
 	// WikiSearchKey is the cache key template for wiki search results
-	WikiSearchKey     Key = "wiki:search:%s"
+	WikiSearchKey Key = "wiki:search:%s"
 	// WikiPageKey is the cache key template for wiki page content
-	WikiPageKey       Key = "wiki:page:%s"
+	WikiPageKey Key = "wiki:page:%s"
 
 	// WalletKey is the cache key template for wallet data (short TTL)
 	WalletKey Key = "wallet:%s" // %s = hashed API key

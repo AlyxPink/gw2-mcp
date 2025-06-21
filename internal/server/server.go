@@ -63,15 +63,15 @@ func NewMCPServer(logger *log.Logger) (*MCPServer, error) {
 // Start starts the MCP server
 func (s *MCPServer) Start(ctx context.Context) error {
 	s.logger.Info("Starting MCP server on stdio")
-	
+
 	// Create a channel to capture ServeStdio errors
 	errChan := make(chan error, 1)
-	
+
 	// Start the server in a goroutine
 	go func() {
 		errChan <- mcpserver.ServeStdio(s.mcp)
 	}()
-	
+
 	// Wait for either context cancellation or server error
 	select {
 	case <-ctx.Done():
