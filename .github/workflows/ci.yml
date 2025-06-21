@@ -13,9 +13,9 @@ on:
 
 # Global environment variables
 env:
-  GOLANGCI_LINT_VERSION: "v1.61.0" # Pin golangci-lint version for consistency
+  GOLANGCI_LINT_VERSION: "v1.64.8" # Pin golangci-lint version for consistency
   GOSEC_VERSION: "2.22.5" # Pin gosec version for security scanning
-  NANCY_VERSION: "v1.0.46" # Pin nancy version for dependency scanning
+  NANCY_VERSION: "v1.0.51" # Pin nancy version for dependency scanning
 
 # Set default permissions to read-only for security
 permissions:
@@ -97,7 +97,7 @@ jobs:
 
       # Run golangci-lint with pinned version for consistency
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           # Use longer timeout for comprehensive analysis
@@ -386,7 +386,7 @@ jobs:
         run: |
           echo "🔍 Running Nancy for additional vulnerability scanning..."
           echo "Note: Nancy provides vulnerability data from Sonatype's OSS Index"
-          go install github.com/sonatypecommunity/nancy@${{ env.NANCY_VERSION }}
+          go install github.com/sonatype-nexus-community/nancy@${{ env.NANCY_VERSION }}
           go list -json -deps ./... | nancy sleuth --loud || {
             echo "⚠️  Nancy found potential issues. Please review the output above."
             echo "This is an additional check beyond Go's official govulncheck."
