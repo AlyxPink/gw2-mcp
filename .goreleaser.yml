@@ -99,6 +99,8 @@ release:
   draft: false
   prerelease: auto
   mode: replace
+  make_latest: auto
+  replace_existing_draft: true
   header: |
     ## GW2 MCP Server {{ .Tag }}
 
