@@ -7,8 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/AlyxPink/gw2-mcp/internal/server"
 	"github.com/charmbracelet/log"
+
+	"github.com/AlyxPink/gw2-mcp/internal/server"
 )
 
 func main() {

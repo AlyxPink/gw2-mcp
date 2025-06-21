@@ -13,7 +13,6 @@ on:
 
 # Global environment variables
 env:
-  GO_VERSION: "1.24" # Go version to use across all jobs
   GOLANGCI_LINT_VERSION: "v1.61.0" # Pin golangci-lint version for consistency
   GOSEC_VERSION: "2.21.4" # Pin gosec version for security scanning
   NANCY_VERSION: "v1.0.46" # Pin nancy version for dependency scanning
@@ -92,7 +91,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: ${{ matrix.go-version }}
           cache: true
           cache-dependency-path: go.sum
 
@@ -124,7 +123,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: ${{ matrix.go-version }}
           cache: true
           cache-dependency-path: go.sum
 
@@ -186,7 +185,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: ${{ matrix.go-version }}
           cache: true
           cache-dependency-path: go.sum
 
@@ -254,7 +253,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: ${{ matrix.go-version }}
           cache: true
           cache-dependency-path: go.sum
 
@@ -316,7 +315,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: ${{ matrix.go-version }}
           cache: true
           cache-dependency-path: go.sum
 

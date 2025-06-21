@@ -25,7 +25,7 @@ test:
 # Run linter
 lint:
 	@echo "Running linter..."
-	golangci-lint run
+	golangci-lint run .
 
 # Format code
 format:

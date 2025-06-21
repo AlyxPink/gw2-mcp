@@ -1,6 +1,6 @@
 module github.com/AlyxPink/gw2-mcp
 
-go 1.24
+go 1.23
 
 require (
 	github.com/charmbracelet/log v0.4.0
