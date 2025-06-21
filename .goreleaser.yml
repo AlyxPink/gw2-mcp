@@ -149,14 +149,14 @@ dockers:
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source=https://github.com/AlyxPink/gw2-mcp"
       - "--label=org.opencontainers.image.description=Guild Wars 2 Model Context Provider Server"
-      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--label=org.opencontainers.image.licenses=GNU Affero General Public License v3.0"
       - "--label=org.opencontainers.image.vendor=AlyxPink"
       - "--label=org.opencontainers.image.url=https://github.com/AlyxPink/gw2-mcp"
       - "--label=org.opencontainers.image.documentation=https://github.com/AlyxPink/gw2-mcp/blob/main/README.md"
     extra_files:
       - README.md
       - LICENSE
-  
+
   # GitHub Container Registry images
   - image_templates:
       - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}"
@@ -173,7 +173,7 @@ dockers:
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source=https://github.com/AlyxPink/gw2-mcp"
       - "--label=org.opencontainers.image.description=Guild Wars 2 Model Context Provider Server"
-      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--label=org.opencontainers.image.licenses=GNU Affero General Public License v3.0"
       - "--label=org.opencontainers.image.vendor=AlyxPink"
       - "--label=org.opencontainers.image.url=https://github.com/AlyxPink/gw2-mcp"
       - "--label=org.opencontainers.image.documentation=https://github.com/AlyxPink/gw2-mcp/blob/main/README.md"
@@ -190,7 +190,7 @@ homebrew_casks:
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: "https://github.com/AlyxPink/gw2-mcp"
     description: "Guild Wars 2 Model Context Provider Server"
-    license: "MIT"
+    license: "GNU Affero General Public License v3.0"
 
 scoops:
   - repository:
@@ -200,7 +200,7 @@ scoops:
       token: "{{ .Env.SCOOP_BUCKET_GITHUB_TOKEN }}"
     homepage: "https://github.com/AlyxPink/gw2-mcp"
     description: "Guild Wars 2 Model Context Provider Server"
-    license: MIT
+    license: GNU Affero General Public License v3.0
 
 nfpms:
   - id: gw2-mcp
@@ -208,11 +208,11 @@ nfpms:
     file_name_template: "{{ .ConventionalFileName }}"
     vendor: AlyxPink
     homepage: https://github.com/AlyxPink/gw2-mcp
-    maintainer: AlyxPink <alyx@example.com>
+    maintainer: AlyxPink <github+gw2-mcp@alyx.pink>
     description: |-
       Guild Wars 2 Model Context Provider Server
       A bridge between LLMs and Guild Wars 2 data sources.
-    license: MIT
+    license: GNU Affero General Public License v3.0
     formats:
       - deb
       - rpm
