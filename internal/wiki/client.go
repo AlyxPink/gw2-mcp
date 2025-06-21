@@ -19,7 +19,7 @@ import (
 const (
 	wikiBaseURL    = "https://wiki.guildwars2.com"
 	wikiAPIURL     = wikiBaseURL + "/api.php"
-	userAgent      = "GW2-MCP-Server/1.0.0"
+	userAgent      = "github.com/AlyxPink/gw2-mcp"
 	requestTimeout = 30 * time.Second
 )
 

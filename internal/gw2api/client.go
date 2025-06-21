@@ -19,7 +19,7 @@ import (
 
 const (
 	baseURL        = "https://api.guildwars2.com/v2"
-	userAgent      = "GW2-MCP-Server/1.0.0"
+	userAgent      = "github.com/AlyxPink/gw2-mcp"
 	requestTimeout = 30 * time.Second
 )
 
