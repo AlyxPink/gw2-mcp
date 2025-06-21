@@ -288,7 +288,12 @@ scoops:
 nfpms:
   - id: gw2-mcp
     package_name: gw2-mcp
-    file_name_template: "{{ .ConventionalFileName }}"
+    file_name_template: >-
+      {{ .PackageName }}_{{ .Version }}_
+      {{- if eq .Arch "amd64" }}amd64
+      {{- else if eq .Arch "arm64" }}arm64
+      {{- else if eq .Arch "arm" }}{{ if eq .Arm "6" }}armv6{{ else }}armv7{{ end }}
+      {{- else }}{{ .Arch }}{{ end }}
     vendor: AlyxPink
     homepage: https://github.com/AlyxPink/gw2-mcp
     maintainer: AlyxPink <github+gw2-mcp@alyx.pink>
