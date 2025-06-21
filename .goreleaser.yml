@@ -133,16 +133,15 @@ release:
     **Full Changelog**: https://github.com/AlyxPink/gw2-mcp/compare/{{ .PreviousTag }}...{{ .Tag }}
 
 dockers:
-  # Primary Docker Hub images
+  # Docker Hub AMD64 images
   - image_templates:
-      - "alyxpink/gw2-mcp:{{ .Tag }}"
-      - "alyxpink/gw2-mcp:v{{ .Major }}"
-      - "alyxpink/gw2-mcp:v{{ .Major }}.{{ .Minor }}"
-      - "alyxpink/gw2-mcp:latest"
+      - "alyxpink/gw2-mcp:{{ .Tag }}-amd64"
     dockerfile: Dockerfile
     use: buildx
+    goos: linux
+    goarch: amd64
     build_flag_templates:
-      - "--platform=linux/amd64,linux/arm64"
+      - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
@@ -157,16 +156,15 @@ dockers:
       - README.md
       - LICENSE
 
-  # GitHub Container Registry images
+  # Docker Hub ARM64 images
   - image_templates:
-      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}"
-      - "ghcr.io/alyxpink/gw2-mcp:v{{ .Major }}"
-      - "ghcr.io/alyxpink/gw2-mcp:v{{ .Major }}.{{ .Minor }}"
-      - "ghcr.io/alyxpink/gw2-mcp:latest"
+      - "alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
     dockerfile: Dockerfile
     use: buildx
+    goos: linux
+    goarch: arm64
     build_flag_templates:
-      - "--platform=linux/amd64,linux/arm64"
+      - "--platform=linux/arm64/v8"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
@@ -180,6 +178,89 @@ dockers:
     extra_files:
       - README.md
       - LICENSE
+
+  # GitHub Container Registry AMD64 images
+  - image_templates:
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    goos: linux
+    goarch: amd64
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/AlyxPink/gw2-mcp"
+      - "--label=org.opencontainers.image.description=Guild Wars 2 Model Context Provider Server"
+      - "--label=org.opencontainers.image.licenses=GNU Affero General Public License v3.0"
+      - "--label=org.opencontainers.image.vendor=AlyxPink"
+      - "--label=org.opencontainers.image.url=https://github.com/AlyxPink/gw2-mcp"
+      - "--label=org.opencontainers.image.documentation=https://github.com/AlyxPink/gw2-mcp/blob/main/README.md"
+    extra_files:
+      - README.md
+      - LICENSE
+
+  # GitHub Container Registry ARM64 images
+  - image_templates:
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
+    dockerfile: Dockerfile
+    use: buildx
+    goos: linux
+    goarch: arm64
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/AlyxPink/gw2-mcp"
+      - "--label=org.opencontainers.image.description=Guild Wars 2 Model Context Provider Server"
+      - "--label=org.opencontainers.image.licenses=GNU Affero General Public License v3.0"
+      - "--label=org.opencontainers.image.vendor=AlyxPink"
+      - "--label=org.opencontainers.image.url=https://github.com/AlyxPink/gw2-mcp"
+      - "--label=org.opencontainers.image.documentation=https://github.com/AlyxPink/gw2-mcp/blob/main/README.md"
+    extra_files:
+      - README.md
+      - LICENSE
+
+docker_manifests:
+  # Docker Hub manifests
+  - name_template: "alyxpink/gw2-mcp:{{ .Tag }}"
+    image_templates:
+      - "alyxpink/gw2-mcp:{{ .Tag }}-amd64"
+      - "alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
+  - name_template: "alyxpink/gw2-mcp:v{{ .Major }}"
+    image_templates:
+      - "alyxpink/gw2-mcp:{{ .Tag }}-amd64"
+      - "alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
+  - name_template: "alyxpink/gw2-mcp:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "alyxpink/gw2-mcp:{{ .Tag }}-amd64"
+      - "alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
+  - name_template: "alyxpink/gw2-mcp:latest"
+    image_templates:
+      - "alyxpink/gw2-mcp:{{ .Tag }}-amd64"
+      - "alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
+
+  # GitHub Container Registry manifests
+  - name_template: "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-amd64"
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
+  - name_template: "ghcr.io/alyxpink/gw2-mcp:v{{ .Major }}"
+    image_templates:
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-amd64"
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
+  - name_template: "ghcr.io/alyxpink/gw2-mcp:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-amd64"
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
+  - name_template: "ghcr.io/alyxpink/gw2-mcp:latest"
+    image_templates:
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-amd64"
+      - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
 
 homebrew_casks:
   - name: gw2-mcp
