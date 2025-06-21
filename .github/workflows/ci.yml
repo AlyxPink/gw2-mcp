@@ -278,6 +278,13 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           syft version
 
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+
       # Run GoReleaser with full build and release process
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -292,6 +299,7 @@ jobs:
           # Optional: Add additional tokens if publishing to other registries
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
 
       # Upload release artifacts with checksums
       - name: Upload release checksums
