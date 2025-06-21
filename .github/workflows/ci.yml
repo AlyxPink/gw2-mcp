@@ -14,7 +14,7 @@ on:
 # Global environment variables
 env:
   GOLANGCI_LINT_VERSION: "v1.61.0" # Pin golangci-lint version for consistency
-  GOSEC_VERSION: "2.21.4" # Pin gosec version for security scanning
+  GOSEC_VERSION: "2.22.5" # Pin gosec version for security scanning
   NANCY_VERSION: "v1.0.46" # Pin nancy version for dependency scanning
 
 # Set default permissions to read-only for security
@@ -191,7 +191,7 @@ jobs:
 
       # Run Gosec security scanner with pinned version
       - name: Run Gosec Security Scanner
-        uses: securecodewarrior/github-action-gosec@v3
+        uses: securego/gosec@master
         with:
           args: "-fmt sarif -out gosec-results.sarif ./..."
           version: ${{ env.GOSEC_VERSION }}
