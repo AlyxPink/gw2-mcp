@@ -271,6 +271,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Install syft for SBOM generation (required by GoReleaser)
+      - name: Install syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b $HOME/.local/bin
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          syft version
+
       # Run GoReleaser with full build and release process
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
