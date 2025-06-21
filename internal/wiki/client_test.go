@@ -106,7 +106,7 @@ func TestClient_Search_API(t *testing.T) {
 				// Mock search response
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(`{
+				_, _ = w.Write([]byte(`{
 					"batchcomplete": "",
 					"query": {
 						"search": [
@@ -129,7 +129,7 @@ func TestClient_Search_API(t *testing.T) {
 				// Mock extract response
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(`{
+				_, _ = w.Write([]byte(`{
 					"batchcomplete": "",
 					"query": {
 						"pages": {
