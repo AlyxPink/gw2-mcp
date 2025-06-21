@@ -1,3 +1,4 @@
+// Package wiki provides functionality for interacting with the Guild Wars 2 wiki API.
 package wiki
 
 import (
@@ -10,8 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlyxPink/gw2-mcp/internal/cache"
 	"github.com/charmbracelet/log"
+
+	"github.com/AlyxPink/gw2-mcp/internal/cache"
 )
 
 const (
@@ -31,21 +33,21 @@ type Client struct {
 // SearchResult represents a single search result from the wiki
 type SearchResult struct {
 	Title     string `json:"title"`
-	PageID    int    `json:"pageid"`
-	Size      int    `json:"size"`
-	WordCount int    `json:"wordcount"`
 	Snippet   string `json:"snippet"`
 	Timestamp string `json:"timestamp"`
 	URL       string `json:"url"`
 	Extract   string `json:"extract,omitempty"`
+	PageID    int    `json:"pageid"`
+	Size      int    `json:"size"`
+	WordCount int    `json:"wordcount"`
 }
 
 // SearchResponse represents the complete search response
 type SearchResponse struct {
+	SearchedAt time.Time      `json:"searched_at"`
 	Query      string         `json:"query"`
 	Results    []SearchResult `json:"results"`
 	Total      int            `json:"total"`
-	SearchedAt time.Time      `json:"searched_at"`
 }
 
 // WikiAPIResponse represents the MediaWiki API response structure
@@ -53,13 +55,13 @@ type WikiAPIResponse struct {
 	BatchComplete string `json:"batchcomplete"`
 	Query         struct {
 		Search []struct {
-			NS        int    `json:"ns"`
 			Title     string `json:"title"`
+			Snippet   string `json:"snippet"`
+			Timestamp string `json:"timestamp"`
+			NS        int    `json:"ns"`
 			PageID    int    `json:"pageid"`
 			Size      int    `json:"size"`
 			WordCount int    `json:"wordcount"`
-			Snippet   string `json:"snippet"`
-			Timestamp string `json:"timestamp"`
 		} `json:"search"`
 		SearchInfo struct {
 			TotalHits int `json:"totalhits"`
@@ -69,15 +71,15 @@ type WikiAPIResponse struct {
 
 // PageContentResponse represents page content API response
 type PageContentResponse struct {
-	BatchComplete string `json:"batchcomplete"`
-	Query         struct {
+	Query struct {
 		Pages map[string]struct {
-			PageID  int    `json:"pageid"`
-			NS      int    `json:"ns"`
 			Title   string `json:"title"`
 			Extract string `json:"extract"`
+			PageID  int    `json:"pageid"`
+			NS      int    `json:"ns"`
 		} `json:"pages"`
 	} `json:"query"`
+	BatchComplete string `json:"batchcomplete"`
 }
 
 // NewClient creates a new wiki client
@@ -153,7 +155,7 @@ func (c *Client) performSearch(ctx context.Context, query string, limit int) ([]
 
 	searchURL := fmt.Sprintf("%s?%s", wikiAPIURL, params.Encode())
 
-	req, err := http.NewRequestWithContext(ctx, "GET", searchURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", searchURL, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -164,10 +166,18 @@ func (c *Client) performSearch(ctx context.Context, query string, limit int) ([]
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			c.logger.Warn("Failed to close response body", "error", closeErr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("wiki API request failed with status %d and failed to read body: %w",
+				resp.StatusCode, readErr)
+		}
 		return nil, fmt.Errorf("wiki API request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -215,7 +225,7 @@ func (c *Client) getPageExtract(ctx context.Context, title string) (string, erro
 
 	extractURL := fmt.Sprintf("%s?%s", wikiAPIURL, params.Encode())
 
-	req, err := http.NewRequestWithContext(ctx, "GET", extractURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", extractURL, http.NoBody)
 	if err != nil {
 		return "", err
 	}
@@ -226,7 +236,11 @@ func (c *Client) getPageExtract(ctx context.Context, title string) (string, erro
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			c.logger.Warn("Failed to close response body", "error", closeErr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("extract API request failed with status %d", resp.StatusCode)

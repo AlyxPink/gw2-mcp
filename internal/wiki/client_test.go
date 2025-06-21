@@ -11,8 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlyxPink/gw2-mcp/internal/cache"
 	"github.com/charmbracelet/log"
+
+	"github.com/AlyxPink/gw2-mcp/internal/cache"
 )
 
 func TestClient_cleanSnippet(t *testing.T) {
@@ -213,7 +214,7 @@ func TestNewClient(t *testing.T) {
 	client := NewClient(cacheManager, logger)
 
 	if client == nil {
-		t.Error("Expected non-nil client")
+		t.Fatal("Expected non-nil client")
 	}
 
 	if client.cache != cacheManager {

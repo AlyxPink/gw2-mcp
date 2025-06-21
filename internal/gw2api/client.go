@@ -1,3 +1,4 @@
+// Package gw2api provides functionality for interacting with the Guild Wars 2 API.
 package gw2api
 
 import (
@@ -11,8 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlyxPink/gw2-mcp/internal/cache"
 	"github.com/charmbracelet/log"
+
+	"github.com/AlyxPink/gw2-mcp/internal/cache"
 )
 
 const (
@@ -36,19 +38,19 @@ type WalletEntry struct {
 
 // Currency represents currency metadata
 type Currency struct {
-	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Icon        string `json:"icon"`
+	ID          int    `json:"id"`
 	Order       int    `json:"order"`
 }
 
 // WalletInfo combines wallet entries with currency metadata
 type WalletInfo struct {
-	Entries    []WalletEntry    `json:"entries"`
-	Currencies map[int]Currency `json:"currencies"`
-	Total      int              `json:"total_currencies"`
 	UpdatedAt  time.Time        `json:"updated_at"`
+	Currencies map[int]Currency `json:"currencies"`
+	Entries    []WalletEntry    `json:"entries"`
+	Total      int              `json:"total_currencies"`
 }
 
 // NewClient creates a new GW2 API client
@@ -197,7 +199,7 @@ func (c *Client) getAllCurrencies(ctx context.Context) (map[int]Currency, error)
 
 // fetchWallet makes the actual API call to get wallet data
 func (c *Client) fetchWallet(ctx context.Context, apiKey string) ([]WalletEntry, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/account/wallet", nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/account/wallet", http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -209,10 +211,17 @@ func (c *Client) fetchWallet(ctx context.Context, apiKey string) ([]WalletEntry,
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			c.logger.Warn("Failed to close response body", "error", closeErr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("API request failed with status %d and failed to read body: %w", resp.StatusCode, readErr)
+		}
 		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -226,7 +235,7 @@ func (c *Client) fetchWallet(ctx context.Context, apiKey string) ([]WalletEntry,
 
 // fetchCurrencyIDs fetches all available currency IDs
 func (c *Client) fetchCurrencyIDs(ctx context.Context) ([]int, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/currencies", nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/currencies", http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -237,10 +246,17 @@ func (c *Client) fetchCurrencyIDs(ctx context.Context) ([]int, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			c.logger.Warn("Failed to close response body", "error", closeErr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("API request failed with status %d and failed to read body: %w", resp.StatusCode, readErr)
+		}
 		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -261,7 +277,7 @@ func (c *Client) fetchCurrencies(ctx context.Context, ids []int) ([]Currency, er
 	}
 	idsParam := strings.Join(idStrs, ",")
 
-	req, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/currencies?ids="+idsParam, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/currencies?ids="+idsParam, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -272,10 +288,17 @@ func (c *Client) fetchCurrencies(ctx context.Context, ids []int) ([]Currency, er
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			c.logger.Warn("Failed to close response body", "error", closeErr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("API request failed with status %d and failed to read body: %w", resp.StatusCode, readErr)
+		}
 		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 

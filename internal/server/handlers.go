@@ -16,7 +16,8 @@ func (s *MCPServer) handleWikiSearch(ctx context.Context, request mcp.CallToolRe
 	}
 
 	// Get limit parameter (optional)
-	limit := request.GetInt("limit", 5) // default to 5
+	const defaultLimit = 5
+	limit := request.GetInt("limit", defaultLimit)
 
 	s.logger.Debug("Wiki search request", "query", query, "limit", limit)
 
@@ -82,7 +83,8 @@ func (s *MCPServer) handleGetCurrencies(ctx context.Context, request mcp.CallToo
 }
 
 // handleCurrencyListResource handles the currency list resource
-func (s *MCPServer) handleCurrencyListResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+func (s *MCPServer) handleCurrencyListResource(ctx context.Context,
+	request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 	s.logger.Debug("Currency list resource request")
 
 	// Get all currencies

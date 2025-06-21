@@ -1,8 +1,8 @@
+// Package server provides the MCP server implementation for Guild Wars 2 data access.
 package server
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
@@ -52,14 +52,10 @@ func NewMCPServer(logger *log.Logger) (*MCPServer, error) {
 	}
 
 	// Register tools
-	if err := gw2MCP.registerTools(); err != nil {
-		return nil, fmt.Errorf("failed to register tools: %w", err)
-	}
+	gw2MCP.registerTools()
 
 	// Register resources
-	if err := gw2MCP.registerResources(); err != nil {
-		return nil, fmt.Errorf("failed to register resources: %w", err)
-	}
+	gw2MCP.registerResources()
 
 	return gw2MCP, nil
 }
@@ -71,7 +67,7 @@ func (s *MCPServer) Start(ctx context.Context) error {
 }
 
 // registerTools registers all available tools
-func (s *MCPServer) registerTools() error {
+func (s *MCPServer) registerTools() {
 	// Wiki search tool
 	wikiSearchTool := mcp.NewTool(
 		"wiki_search",
@@ -113,12 +109,10 @@ func (s *MCPServer) registerTools() error {
 	)
 
 	s.mcp.AddTool(currencyTool, s.handleGetCurrencies)
-
-	return nil
 }
 
 // registerResources registers all available resources
-func (s *MCPServer) registerResources() error {
+func (s *MCPServer) registerResources() {
 	// Currency list resource
 	currencyListResource := mcp.NewResource(
 		"gw2://currencies",
@@ -128,6 +122,4 @@ func (s *MCPServer) registerResources() error {
 	)
 
 	s.mcp.AddResource(currencyListResource, s.handleCurrencyListResource)
-
-	return nil
 }
