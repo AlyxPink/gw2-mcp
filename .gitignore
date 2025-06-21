@@ -11,8 +11,8 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+vendor/
 
 # Go workspace file
 go.work
@@ -27,8 +27,6 @@ coverage.out
 coverage.html
 
 # IDE files
-.vscode/
-.idea/
 *.swp
 *.swo
 *~
@@ -57,16 +55,9 @@ secrets.json
 *.key
 *.pem
 
-# Cache directories
-cache/
+# Temp directories
 tmp/
 temp/
-
-# Documentation build
-docs/api.txt
-
-# Docker
-.dockerignore
 
 # Local configuration
 config.local.json
@@ -76,15 +67,6 @@ config.local.yaml
 *.bak
 *.backup
 
-# Editor directories and files
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
 # Profiling data
 *.prof
 *.pprof
-
-# Air (live reload) temporary files
-tmp/
