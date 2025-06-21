@@ -100,16 +100,10 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
-          # Use longer timeout for comprehensive analysis
-          args: --timeout=10m --verbose
-          # Enable annotations for better PR feedback
-          annotations: true
+          # Enable verbose mode for detailed output
+          args: --verbose
           # Only show new issues in PRs to reduce noise
           only-new-issues: ${{ github.event_name == 'pull_request' }}
-          # Skip cache to ensure fresh analysis
-          skip-cache: false
-          # Skip build cache for faster execution
-          skip-build-cache: true
 
   format:
     name: Code Formatting
