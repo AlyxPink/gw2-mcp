@@ -50,8 +50,8 @@ type SearchResponse struct {
 	Total      int            `json:"total"`
 }
 
-// WikiAPIResponse represents the MediaWiki API response structure
-type WikiAPIResponse struct {
+// APIResponse represents the MediaWiki API response structure
+type APIResponse struct {
 	BatchComplete string `json:"batchcomplete"`
 	Query         struct {
 		Search []struct {
@@ -181,7 +181,7 @@ func (c *Client) performSearch(ctx context.Context, query string, limit int) ([]
 		return nil, fmt.Errorf("wiki API request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
-	var apiResponse WikiAPIResponse
+	var apiResponse APIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
 		return nil, fmt.Errorf("failed to decode search response: %w", err)
 	}

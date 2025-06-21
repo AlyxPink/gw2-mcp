@@ -84,7 +84,7 @@ func (s *MCPServer) handleGetCurrencies(ctx context.Context, request mcp.CallToo
 
 // handleCurrencyListResource handles the currency list resource
 func (s *MCPServer) handleCurrencyListResource(ctx context.Context,
-	request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	_ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
 	s.logger.Debug("Currency list resource request")
 
 	// Get all currencies

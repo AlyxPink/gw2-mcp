@@ -1,3 +1,5 @@
+// Package main provides the GW2 MCP (Model Context Protocol) server implementation.
+// This server provides access to Guild Wars 2 API data and wiki information through MCP.
 package main
 
 import (

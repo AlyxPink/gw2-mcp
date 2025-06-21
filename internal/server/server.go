@@ -61,7 +61,7 @@ func NewMCPServer(logger *log.Logger) (*MCPServer, error) {
 }
 
 // Start starts the MCP server
-func (s *MCPServer) Start(ctx context.Context) error {
+func (s *MCPServer) Start(_ context.Context) error {
 	s.logger.Info("Starting MCP server on stdio")
 	return mcpserver.ServeStdio(s.mcp)
 }
