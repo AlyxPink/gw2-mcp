@@ -136,7 +136,7 @@ dockers:
   # Docker Hub AMD64 images
   - image_templates:
       - "alyxpink/gw2-mcp:{{ .Tag }}-amd64"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.goreleaser
     use: buildx
     goos: linux
     goarch: amd64
@@ -159,7 +159,7 @@ dockers:
   # Docker Hub ARM64 images
   - image_templates:
       - "alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.goreleaser
     use: buildx
     goos: linux
     goarch: arm64
@@ -182,7 +182,7 @@ dockers:
   # GitHub Container Registry AMD64 images
   - image_templates:
       - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-amd64"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.goreleaser
     use: buildx
     goos: linux
     goarch: amd64
@@ -205,7 +205,7 @@ dockers:
   # GitHub Container Registry ARM64 images
   - image_templates:
       - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.goreleaser
     use: buildx
     goos: linux
     goarch: arm64
