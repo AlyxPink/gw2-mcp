@@ -343,11 +343,21 @@ sboms:
   - id: binary
     artifacts: binary
     documents:
-      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_binary.sbom"
+      - >-
+        {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_
+        {{- if eq .Arch "amd64" }}amd64
+        {{- else if eq .Arch "arm64" }}arm64
+        {{- else if eq .Arch "arm" }}armv{{ .Arm }}
+        {{- else }}{{ .Arch }}{{ end }}_binary.sbom
   - id: package
     artifacts: package
     documents:
-      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_package.sbom"
+      - >-
+        {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_
+        {{- if eq .Arch "amd64" }}amd64
+        {{- else if eq .Arch "arm64" }}arm64
+        {{- else if eq .Arch "arm" }}armv{{ .Arm }}
+        {{- else }}{{ .Arch }}{{ end }}_package.sbom
 
 announce:
   discord:
