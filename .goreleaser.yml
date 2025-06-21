@@ -251,15 +251,15 @@ sboms:
   - id: archive
     artifacts: archive
     documents:
-      - "{{ .ProjectName }}_{{ .Version }}_checksums.txt.sbom"
+      - "{{ .ProjectName }}_{{ .Version }}_archive.sbom"
   - id: binary
     artifacts: binary
     documents:
-      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}.sbom"
+      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_binary.sbom"
   - id: package
     artifacts: package
     documents:
-      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}.{{ .Format }}.sbom"
+      - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_package.sbom"
 
 announce:
   discord:
