@@ -248,13 +248,16 @@ milestones:
     name_template: "{{ .Tag }}"
 
 sboms:
-  - artifacts: archive
+  - id: archive
+    artifacts: archive
     documents:
       - "{{ .ProjectName }}_{{ .Version }}_checksums.txt.sbom"
-  - artifacts: binary
+  - id: binary
+    artifacts: binary
     documents:
       - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}.sbom"
-  - artifacts: package
+  - id: package
+    artifacts: package
     documents:
       - "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}.{{ .Format }}.sbom"
 
