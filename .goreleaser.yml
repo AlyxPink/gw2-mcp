@@ -264,27 +264,6 @@ docker_manifests:
       - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-amd64"
       - "ghcr.io/alyxpink/gw2-mcp:{{ .Tag }}-arm64v8"
 
-homebrew_casks:
-  - name: gw2-mcp
-    repository:
-      owner: AlyxPink
-      name: homebrew-tap
-      branch: main
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    homepage: "https://github.com/AlyxPink/gw2-mcp"
-    description: "Guild Wars 2 Model Context Provider Server"
-    license: "GNU Affero General Public License v3.0"
-
-scoops:
-  - repository:
-      owner: AlyxPink
-      name: scoop-bucket
-      branch: main
-      token: "{{ .Env.SCOOP_BUCKET_GITHUB_TOKEN }}"
-    homepage: "https://github.com/AlyxPink/gw2-mcp"
-    description: "Guild Wars 2 Model Context Provider Server"
-    license: GNU Affero General Public License v3.0
-
 nfpms:
   - id: gw2-mcp
     package_name: gw2-mcp
@@ -334,8 +313,3 @@ milestones:
     close: true
     fail_on_error: false
     name_template: "{{ .Tag }}"
-
-announce:
-  discord:
-    enabled: true
-    message_template: "GW2 MCP Server {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}"
