@@ -178,7 +178,7 @@ gofumpt -w .
 
 ## License
 
-MIT License - see LICENSE file for details.
+GNU Affero General Public License v3.0 - see LICENSE file for details.
 
 ## Acknowledgments
 
