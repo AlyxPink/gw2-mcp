@@ -1,5 +1,8 @@
 # GW2 MCP Server
 
+[![Add MCP Server gw2-mcp to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg#gh-light-mode-only)](https://lmstudio.ai/install-mcp?name=gw2-mcp&config=eyJjb21tYW5kIjoiZG9ja2VyIiwiYXJncyI6WyJydW4iLCItLXJtIiwiLWkiLCJhbHl4cGluay9ndzItbWNwOnYxIl19#gh-light-mode-only)
+[![Add MCP Server gw2-mcp to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-dark.svg#gh-dark-mode-only)](https://lmstudio.ai/install-mcp?name=gw2-mcp&config=eyJjb21tYW5kIjoiZG9ja2VyIiwiYXJncyI6WyJydW4iLCItLXJtIiwiLWkiLCJhbHl4cGluay9ndzItbWNwOnYxIl19#gh-dark-mode-only)
+
 A Model Context Provider (MCP) server for Guild Wars 2 that bridges Large Language Models (LLMs) with Guild Wars 2 data sources.
 
 ## Features
@@ -37,10 +40,30 @@ go build -o gw2-mcp ./cmd/server
 
 ### Running the Server
 
+[![Add MCP Server gw2-mcp to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg#gh-light-mode-only)](https://lmstudio.ai/install-mcp?name=gw2-mcp&config=eyJjb21tYW5kIjoiZG9ja2VyIiwiYXJncyI6WyJydW4iLCItLXJtIiwiLWkiLCJhbHl4cGluay9ndzItbWNwOnYxIl19#gh-light-mode-only)
+[![Add MCP Server gw2-mcp to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-dark.svg#gh-dark-mode-only)](https://lmstudio.ai/install-mcp?name=gw2-mcp&config=eyJjb21tYW5kIjoiZG9ja2VyIiwiYXJncyI6WyJydW4iLCItLXJtIiwiLWkiLCJhbHl4cGluay9ndzItbWNwOnYxIl19#gh-dark-mode-only)
+
 The MCP server communicates via stdio (standard input/output):
 
 ```bash
 ./gw2-mcp
+```
+
+You can configure Claude Desktop, LM Studio, or other LLM tools to interact with the server using this configuration:
+```json
+{
+  "mcpServers": {
+    "gw2-mcp": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "alyxpink/gw2-mcp:v1"
+      ]
+    }
+  }
+}
 ```
 
 ### MCP Tools
